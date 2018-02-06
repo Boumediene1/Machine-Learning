@@ -1,0 +1,33 @@
+import numpy as np
+
+class classif_bayes:
+
+    def __init__(self,modeles_mv, priors):
+        self.modeles_mv = modeles_mv
+        self.priors = priors
+        if len(self.modeles_mv) != len(self.priors):
+            print('Le nombre de modeles MV doit etre egale au nombre de priors!')
+        self.n_classes = len(self.modeles_mv)
+			
+    # Retourne une matrice de taille nb. ex. de test x nombre de classes contenant les log
+    # probabilités de chaque exemple de test sous chaque modèle, entrainé par MV.	
+    def compute_predictions(self, test_data):
+
+        log_pred = np.empty((test_data.shape[0],self.n_classes))
+
+        for i in range(self.n_classes):
+            # ici il va falloir utiliser modeles_mv[i] et priors pour remplir
+            # chaque colonne de log_pred (c'est plus efficace de faire tout une
+            # colonne a la fois)
+
+            # log_pred[:,i]
+
+            log_gauss = self.modeles_mv[i].compute_predictions(test_data)
+            # 0.3333: on a 50 test ex. parmi 150 data en total
+            log_pred[:,i] = log_gauss + np.log(self.priors[i])
+
+            # print(log_pred)
+            
+            # pass
+
+        return log_pred

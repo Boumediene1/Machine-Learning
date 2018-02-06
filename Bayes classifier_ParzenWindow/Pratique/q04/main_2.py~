@@ -1,0 +1,188 @@
+import numpy as np
+
+from gauss_mv import *
+from parzen_mv import *
+from classif_bayes import *
+import utilitaires
+
+# Ouvrir le fichier iris.txt
+iris=np.loadtxt('iris.txt')
+
+# Melanger les exemple d'Iris
+np.random.seed(123)
+indices = np.arange(0,150)
+np.random.shuffle(indices)
+
+# Les ensemble d'entrainement et de validation
+iris_train = iris[indices[0:75]]
+iris_valid = iris[indices[75:150]]
+
+# Version complet
+train_cols = [0,1,2,3]
+
+# Classifier les ensemble d'entrainement et de validation
+priors = np.array([0,0,0])
+iris_train_c1 = []
+iris_train_c2 = []
+iris_train_c3 = []
+for ex in iris_train:
+    c = ex[-1]
+    if c == 1:
+        priors[0] += 1
+        iris_train_c1.append(ex)
+    elif c == 2:
+        priors[1] += 1
+        iris_train_c2.append(ex)
+    if c == 3:
+        priors[2] += 1
+        iris_train_c3.append(ex)
+
+priors = priors/len(iris_train)
+iris_train_c1 = np.array(iris_train_c1)
+iris_train_c2 = np.array(iris_train_c2)
+iris_train_c3 = np.array(iris_train_c3)
+
+def create_models(data_class_list, train_cols, priors):
+    dimension = len(train_cols)
+    gauss_c1 = gauss_mv(dimension, "diagonale")
+    gauss_c2 = gauss_mv(dimension, "diagonale")
+    gauss_c3 = gauss_mv(dimension, "diagonale")
+    gauss_c1.train(iris_train_c1[train_cols])
+    gauss_c2.train(iris_train_c2[train_cols])
+    gauss_c3.train(iris_train_c3[train_cols])
+    models_bayes = [gauss_c1, gauss_c2, gauss_c3]
+    # Calculer le log probabilite de classifieur Bayes
+    classifieur = classif_bayes(models_bayes, priors)
+
+    return classifieur
+
+def predict_class(classifieur, train_data, valid_data, train_cols):
+    log_prob_train = classifieur.compute_predictions(train_data[train_cols])
+    log_prob_valid = classifieur.compute_predictions(valid_data[train_cols])
+
+    pred_train = log_prob_train.argmax(1)+1
+    pred_valid = log_prob_valid.argmax(1)+1
+
+    return [pred_train, pred_valid]
+
+cols_complet = [0,1,2,3]
+cols_2d = [0,1]
+
+# data_class_list = [iris_train_c1, iris_train_c2, iris_train_c3]
+# classifieur_complet = create_models(data_class_list, cols_complet, priors)
+# classifieur_2d = create_models(data_class_list, cols_2d, priors)
+
+# predict_complet = predict_class(classifieur_complet, iris_train, iris_valid, cols_complet)
+# predict_2d = predict_class(classifieur_2d, iris_train, iris_valid, cols_2d)
+
+# print ("Taux d'erreur (entrainement) {0:.2f}".format((1-(predict_complet[0]==iris_train[:,-1]).mean())*100.0))
+# print ("Taux d'erreur (validation) {0:.2f}".format((1-(predict_complet[1]==iris_valid[:,-1]).mean())*100.0))
+
+# Creer le model Gaussien diagonale
+gauss_diag_c1_complet = gauss_mv(4)
+gauss_diag_c2_complet = gauss_mv(4)
+gauss_diag_c3_complet = gauss_mv(4)
+gauss_diag_c1_complet.train(iris_train_c1[:,:-1])
+gauss_diag_c2_complet.train(iris_train_c2[:,:-1])
+gauss_diag_c3_complet.train(iris_train_c3[:,:-1])
+# print(np.mean(gauss_diag_c1_complet.sigma_sq),np.mean(gauss_diag_c2_complet.sigma_sq),np.mean(gauss_diag_c3_complet.sigma_sq))
+models_bayes = [gauss_diag_c1_complet, gauss_diag_c2_complet, gauss_diag_c3_complet]
+# Calculer le log probabilite de classifieur Bayes
+classifieur = classif_bayes(models_bayes, priors)
+log_prob_train_complet = classifieur.compute_predictions(iris_train[:,train_cols])
+log_prob_valid_complet = classifieur.compute_predictions(iris_valid[:,train_cols])
+
+classesPred_train_complet = log_prob_train_complet.argmax(axis=1)+1
+classesPred_valid_complet = log_prob_valid_complet.argmax(axis=1)+1
+# print(log_prob_train_complet)
+# print(iris_train[:,-1])
+# print(log_prob_train_complet.argmax(axis=1)+1)
+print("Bayes avec le noyeau Gaussien")
+print("Complet")
+print ("Taux d'erreur (entrainement) {0:.2f}".format((1-(classesPred_train_complet==iris_train[:,-1]).mean())*100.0))
+# print(classesPred_train_complet)
+print ("Taux d'erreur (validation) {0:.2f}".format((1-(classesPred_valid_complet==iris_valid[:,-1]).mean())*100.0))
+print("----------------------------------")
+# print(classesPred_valid_complet)
+
+########## Version 2D ##########
+train_cols = [0,1]
+
+# Creer le model Gaussien diagonale
+gauss_diag_c1_2d = gauss_mv(2)
+gauss_diag_c2_2d = gauss_mv(2)
+gauss_diag_c3_2d = gauss_mv(2)
+gauss_diag_c1_2d.train(iris_train_c1[:,train_cols])
+gauss_diag_c2_2d.train(iris_train_c2[:,train_cols])
+gauss_diag_c3_2d.train(iris_train_c3[:,train_cols])
+models_bayes = [gauss_diag_c1_2d, gauss_diag_c2_2d, gauss_diag_c3_2d]
+# Calculer le log probabilite de classifieur Bayes
+classifieur = classif_bayes(models_bayes, priors)
+log_prob_train_2d = classifieur.compute_predictions(iris_train[:,train_cols])
+log_prob_valid_2d = classifieur.compute_predictions(iris_valid[:,train_cols])
+
+classesPred_train_2d = log_prob_train_2d.argmax(1)+1
+classesPred_valid_2d = log_prob_valid_2d.argmax(1)+1
+print("Deux Dimensions")
+print ("Taux d'erreur (entrainement) {0:.2f}".format((1-(classesPred_train_2d==iris_train[:,-1]).mean())*100.0))
+print ("Taux d'erreur (validation) {0:.2f}".format((1-(classesPred_valid_2d==iris_valid[:,-1]).mean())*100.0))
+print("###################################")
+utilitaires.gridplot(classifieur,
+                     iris_train[:, train_cols + [-1]],
+                     iris_valid[:, train_cols + [-1]],
+                     n_points=50)
+
+########################## NOYAU PARZEN ##########################
+train_cols = [0,1,2,3]
+# Creer le model Gaussien diagonale
+parzen_diag_c1_complet = parzen_mv(4, 0.05)
+parzen_diag_c2_complet = parzen_mv(4, 0.1)
+parzen_diag_c3_complet = parzen_mv(4, 0.2)
+parzen_diag_c1_complet.train(iris_train_c1[:,train_cols])
+parzen_diag_c2_complet.train(iris_train_c2[:,train_cols])
+parzen_diag_c3_complet.train(iris_train_c3[:,train_cols])
+models_bayes = [parzen_diag_c1_complet, parzen_diag_c2_complet, parzen_diag_c3_complet]
+# Calculer le log probabilite de classifieur Bayes
+
+classifieur = classif_bayes(models_bayes, priors)
+log_prob_train_complet = classifieur.compute_predictions(iris_train[:,train_cols])
+log_prob_valid_complet = classifieur.compute_predictions(iris_valid[:,train_cols])
+
+classesPred_train_complet = log_prob_train_complet.argmax(1)+1
+classesPred_valid_complet = log_prob_valid_complet.argmax(1)+1
+
+print("Bayes avec le noyau Parzen")
+print("Complet")
+print ("Taux d'erreur (entrainement) {0:.2f}".format((1-(classesPred_train_complet==iris_train[:,-1]).mean())*100.0))
+print ("Taux d'erreur (validation) {0:.2f}".format((1-(classesPred_valid_complet==iris_valid[:,-1]).mean())*100.0))
+print("----------------------------------")
+
+########## Version 2D ##########
+train_cols = [0,1]
+# Creer le model Gaussien diagonale
+parzen_diag_c1_2d = parzen_mv(4, 0.05)
+parzen_diag_c2_2d = parzen_mv(4, 0.1)
+parzen_diag_c3_2d = parzen_mv(4, 0.2)
+parzen_diag_c1_2d.train(iris_train_c1[:,train_cols])
+parzen_diag_c2_2d.train(iris_train_c2[:,train_cols])
+parzen_diag_c3_2d.train(iris_train_c3[:,train_cols])
+models_bayes = [parzen_diag_c1_2d, parzen_diag_c2_2d, parzen_diag_c3_2d]
+# Calculer le log probabilite de classifieur Bayes
+
+classifieur = classif_bayes(models_bayes, priors)
+log_prob_train_2d = classifieur.compute_predictions(iris_train[:,train_cols])
+log_prob_valid_2d = classifieur.compute_predictions(iris_valid[:,train_cols])
+
+classesPred_train_2d = log_prob_train_2d.argmax(1)+1
+classesPred_valid_2d = log_prob_valid_2d.argmax(1)+1
+
+print("Bayes avec le noyau Parzen")
+print("2d")
+print ("Taux d'erreur (entrainement) {0:.2f}".format((1-(classesPred_train_2d==iris_train[:,-1]).mean())*100.0))
+print ("Taux d'erreur (validation) {0:.2f}".format((1-(classesPred_valid_2d==iris_valid[:,-1]).mean())*100.0))
+
+print("###################################")
+utilitaires.gridplot(classifieur,
+                     iris_train[:, train_cols + [-1]],
+                     iris_valid[:, train_cols + [-1]],
+                     n_points=50)

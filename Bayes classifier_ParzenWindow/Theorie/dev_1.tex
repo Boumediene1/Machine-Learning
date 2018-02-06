@@ -1,0 +1,291 @@
+\documentclass{article}
+
+\usepackage[utf8x]{inputenc}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{stackrel}
+\usepackage{amssymb}
+\usepackage{enumitem}
+
+\title{IFT3395 Devoirs 1 \\ \normalsize Professur: Aaron Courville}
+\author{Boumediene Boukharouba, Farzin Faridfar}
+
+% \newcommand\kw[1]{\textbf{#1}}
+% \newcommand \Base [2] {\texttt{#1}$_{#2}$}
+% \newcommand \Hex [1] {\Base{#1}{16}}
+
+\begin{document}
+
+\maketitle
+
+\section{Petit exercice de probabilités}
+
+atteinte: une femme atteinte d’un cancer du sein \\
+positif: résultat de test positif\\
+
+Bayes:
+\begin{align*}
+  P(atteinte|positif)&=\frac{P(positif|atteinte)P(atteinte)}{P(positif)}
+\end{align*}
+
+résultat de test positif = positif parmi ce qui sont atteintes + positif et
+parmi ce qui ne sont pas atteintes
+\begin{align*}
+  P(positif|atteinte) = 0.8\\
+  P(atteinte) = 0.01\\
+  P(positif) &= 0.8 \times 0.01 + 0.096 \times (1 - 0.01)\\
+             &= 0.103\\
+  \\
+  P(atteinte|positif)&=\frac{P(positif|atteinte)P(atteinte)}{P(positif)}\\
+             &=\frac{0.8 \times 0.01}{0.103}\\
+             & = 0.0777 = 7.77\%
+\end{align*}
+
+\paragraph{}
+Comme le résultat montre il faut au moins un cours de probabilité pour
+les médecins pour qu'ils ne fassent pas peur aux pauvres
+patientes. Leur choix de réponse est à cause qu'ils calculent la
+probabilité d'un test positif sashant que la patiente est atteinte
+d'un cancer.
+
+\section{Estimation de densité : paramétrique Gaussienne, v.s. fenêtres de Parzen}
+\subsection{Gaussien isotropique}
+\begin{enumerate}[label=(\alph*)]
+\item La moyenne: $\mu \in \rm I\!R^d $ et la variance: $\sigma ^2 \in
+  \rm I\!R $ \\
+  (Dans le cas de Gaussien isotropique, la matrice de
+  covariance ($\Sigma$) est diagonale avec la même valeur sur sa
+  diagonale, car on considère que les variances sont égales dans
+  toute les dimensions. Donc, le seul paramètre est la variance
+  elle-même)
+\item
+  On considère que $\lvert D  \rvert = n$ et que la dimension des
+  données est égal à \emph{d}. On a:
+  \begin{align}
+    \mu &= \frac{1}{n} \sum_{i=1}^{n} x_i \\
+    \sigma ^2 &= \frac{1}{nd} \sum_{i=1}^{n} (x_i - \mu)^T(x_i - \mu)
+  \end{align}
+  Les valeurs optimum de chacun des paramètres (le moyen et la
+  variance) peut être calculé en dérivant les équation (1) et (2)
+  par rapport à $x_i$.
+\item $O(n.d)$ (Il faut calculer la moyenne et la variance pour
+  chaque exemple de données (On en a \emph{n} fois) qui sont en
+  \emph{d} dimensions)
+\item
+  \begin{align*}
+    \hat{P}_{gaus-isotrop}(x) = \frac{1}{(2 \pi)^\frac{d}{2} \sigma
+    ^d}e^{-\frac{(x_i - \mu)^T(x_i - \mu)}{2\sigma ^2}}
+  \end{align*}
+
+\item Il faut calculer la moyenne, la variance et le log de
+  vraisemblance pour chacun des exemples de données. Donc la
+  complexité est  $O(m.d)$ où \emph{m} et la taille d'ensemble du test.
+\end{enumerate}
+
+\subsection{Fenêtre de Parzen avec un noyau Gaussien Isotropique}
+\begin{enumerate}[label=(\alph*)]
+\item Comme le $\sigma$ est fixé on a que calculer la moyenne et
+  ensuite le log de vraisemblance pour trouver la classe appropriée. Ici, l'ensemble d'entraînements
+  joue le rôle de paramètre qui doit être mémorisé pour la phase
+  \emph{``entraînement-apprentissage''} et il n'existe aucune phase
+  d'optimisation des paramètre ou la sélection d'hyper-paramètre.
+\item Pour un estimateur Parzen avec le noyau Gaussien isotropique la largeur de fenêtre de Parzen $h=\sigma$.
+  \begin{align*}
+    \hat{P}_{mathrmParzen}(x) = \frac{1}{n} \sum_{i=1}^{n}N_{X_i , \sigma}(x_i)\\
+    N_{X_i , \sigma}(x) = \frac{1}{(2 \pi)^\frac{d}{2} \sigma ^d}e^{-\frac{(x_i - x)^T(x_i - x)}{\sigma ^2}}
+  \end{align*}
+\item Dans ce cass aussi, il faut calculer la moyenne et le log de
+  vraisemblance pour chacun des exemples de données. Donc, la
+  complexité est $O(m.d)$ où \emph{m} et la taille d'ensemble du test.
+\end{enumerate}
+
+\subsection{Capacité}
+\begin{enumerate}[label=(\alph*)]
+\item L'approche Parzen a la plus forte
+  capacité. Dans cette approche la variance est une hyper-paramètre
+  qui définie la rayon de fenêtre de Parzen et qui peut prendre une infinité de valeur. Donc
+  il faut l'optimiser pour avoir la meilleur valeur pour
+  cet hyper-paramètre. Alors que, dans l'approche Gaussienne, la
+  variance est calculé en utilisant les données d'entraînements un
+  degré de liberté moins que l'approche précédente.
+\item Approche Parzen. Comme dans cette approche on peut choisir
+  la variance (qui a le rôle de la rayon de fenêtre de Parzen), il
+  est toujours possible d'avoir une surface d'apprentissage plus
+  précise. Cependant, le sigma choisi peut retourner une très bon
+  résultat pour l'ensemble d'entraînements et il est très probable
+  que cette valeur donne un mauvais résultat pour l'ensemble de
+  validation, autrement dit le cas de sur-apprentissage. En
+  choisissant les sigma trop petit, on a le risque d'être en sur-apprentissage.
+\item Parce que dans les fenêtre de Parzen, $\sigma$ est choisi
+  comme une constante par l'utilisateur. Alors que, dans l'approche
+  paramétrique Gaussienne, cette paramètre est choisi selon
+  l'optimisation qui se fait dans le modèle en utilisant les
+  données d'entraînements.
+\end{enumerate}
+
+\subsection{Densité Gussienne diagonale}
+\begin{enumerate}[label=(\alph*)]
+\item Le moyen: $\mu \in \rm I\!R^d $ et la matrice de covariance: $\Sigma
+  \in \rm I\!R^{d \times d} $\\
+  \begin{align*}
+    p(x)=N_{\mu , \sigma}(x) = \frac{1}{(2 \pi)^\frac{d}{2} \sqrt{|\Sigma}|}e^{(x_i - \mu)^T\Sigma^{-1}(x_i - \mu)}
+  \end{align*}
+  
+\item
+\item
+  \begin{align*}
+    \hat{R} = \frac{1}{n}\sum_{i=1}^{n}L(f(x),y)\\
+    L(f(x),y) = -\log{p(x)} \implies
+    \hat{R} = -\sum_{i=1}^{n}\log{p(x_i)}
+  \end{align*}
+\item
+  \begin{align*}
+    \hat{R} &= -\sum_{i=1}^{n}{
+              \log{p(x_i)}}\\
+            &= -\sum_{i=1}^{n}{
+              log{\Big(
+              \frac{1}{(2 \pi)^\frac{d}{2}\sqrt{|\Sigma}|}
+              e^{(x_i - \mu)^T\Sigma^{-1}(x_i-\mu)}}\Big)}\\
+            &= -\sum_{i=1}^{n}\Bigg(
+              log{\Big(\frac{1}{(2 \pi)^\frac{d}{2}\sqrt{|\Sigma}                   |}
+              \Big)}+
+              log{\Big(
+              e^{(x_i - \mu)^T\Sigma^{-1}(x_i-\mu)}}
+              \Big)
+              \Bigg)\\
+            &= -\sum_{i=1}^{n}\Bigg(
+              \log{1} -\log{\Big({(2 \pi)^\frac{d}{2}\sqrt{|\Sigma}                   |}
+              \Big)}+
+              (x_i - \mu)^T\Sigma^{-1}(x_i-\mu)
+              \Bigg)\\
+            &= \sum_{i=1}^{n}\Bigg(
+              \frac{d}{2}log{{(2 \pi)+\log(\sqrt{|\Sigma}|})
+              }-
+              (x_i - \mu)^T\Sigma^{-1}(x_i-\mu)
+              \Bigg)\\
+            &= \frac{nd}{2}\log(2 \pi)+
+              n\log(\sqrt{|\Sigma|}) -\sum_{i=1}^{n}\Big(
+              (x_i - \mu)^T\Sigma^{-1}(x_i-\mu)
+              \Big)\\
+  \end{align*}
+  Pour obtenir les paramètres optimaux,il faut résoudre les
+  équations suivants:
+  \[
+    \frac{\partial\hat{R}}{\partial \mu} = 0 \text{ et }
+    \frac{\partial\hat{R}}{\partial \sigma} = 0
+  \]
+  \begin{align*}
+    \text{Pour la moyenne:}\\
+    \frac{\partial\hat{R}}{\partial \mu} &= 0 \\
+                                         &=
+                                           \frac{\partial}{\partial
+                                           \mu}\Bigg(
+                                           \frac{nd}{2}log{{(2 \pi)+
+                                           n\log(\sqrt{|\Sigma}|})
+                                           }-\sum_{i=1}^{n}\Big(
+                                           (x_i - \mu)^T\Sigma^{-1}(x_i-\mu)
+                                           \Big)                                            
+                                           \Bigg)\\
+                                         &= 0 + 0 + \sum_{i=1}^{n} \frac{\partial}{\partial
+                                           \mu}\Big(
+                                           (x_i - \mu)^T\Sigma^{-1}(x_i-\mu)
+                                           \Big)
+  \end{align*}
+  \begin{align*}
+    \text{On a } (f.g)' = f'.g + f.g' \text{. Donc:}\\
+    \frac{\partial}{\partial
+    \mu}\Big((x_i - \mu)^T\Sigma^{-1}(x_i-\mu)\Big) &=
+                                                      \Sigma^T\big(
+                                                      -(x_i - \mu)-(x_i - \mu)
+                                                      \big)\\
+                                                    &= 2\Sigma^T(x_i - \mu)
+  \end{align*}
+  \begin{align*}
+    \text{et ainsi:}\\
+    \frac{\partial\hat{R}}{\partial \mu} &= 0\\
+    \sum_{i=1}^{n}{2\Sigma^T(x_i - \mu)} & = 0\\
+    \sum_{i=1}^{n}{(x_i - \mu)} & = 0\\
+    \sum_{i=1}^{n}x_i + n\mu & = 0 \implies \\
+    \hat{\mu} & = \frac{1}{n}\sum_{i=1}^{n}x_i\\
+  \end{align*}
+
+  \begin{align*}
+    \text{Pour la variance ou l'écart-type:}\\
+    \frac{\partial\hat{R}}{\partial \sigma}
+    &= 0 \\
+                                            &=
+                                              \frac{\partial}{\partial
+                                              \sigma}\Bigg(
+                                              \frac{nd}{2}\log{{(2 \pi)+
+                                              \frac{n}{2}\log(|\Sigma}|)
+                                              }-
+                                              \sum_{i=1}^{n}\Big(
+                                              (x_i - \mu)^T\Sigma^{-1}(x_i-\mu)
+                                              \Big)                                            
+                                              \Bigg)\\
+                                            &= 0 + \frac{\partial}{\partial \sigma}\big(\frac{n}{2}\log(|\Sigma|)\big) +
+                                              \sum_{i=1}^{n} \frac{\partial}{\partial
+                                              \sigma}\Big(
+                                              (x_i - \mu)^T\Sigma^{-1}(x_i-\mu)
+                                              \Big)
+  \end{align*}
+  Pour $|\Sigma|$ on a:
+  \begin{align}
+|\Sigma| = \Pi_{j=1}^{d}\sigma^2 \implies \log|\Sigma| &=
+                                                         \log\Pi_{j=1}^{d}\sigma_j^2 \\
+                                                       &=
+                            \sum_{j=1}^d(\log\sigma_j^2)
+    \\
+               \frac{\partial}{\partial
+    \sigma}\sum_{j=1}^d(\log\sigma_j^2) = \sum_{j=1}^d\frac{2}{\sigma_j}
+    \text{ et pour un $\sigma_k$ } \implies \frac{2}{\sigma_k} \\
+    \text{Aussi pour un $\sigma_k$}:
+    \frac{\partial}{\partial \sigma}\Sigma^{-1} = \frac{2}{\sigma_k^3}
+  \end{align}
+  
+  \begin{align*}
+    \text{En replaçant les équations (5) et (6) on aura:}\\
+                                            & = \frac{2n}{\sigma}
+                                              + \frac{2\sum_{i=1}^{n}
+                                              \big((x_i - \mu)^T(x_i-\mu)
+                                              \big)}{\sigma^3}\\
+n\sigma^2 &= \sum_{i=1}^{n}
+                                              \big((x_i - \mu)^T(x_i-\mu)
+             \big)\\
+\hat{\sigma}^2 &= \frac{1}{n}\sum_{i=1}^{n}
+                                              \big((x_i - \mu)^T(x_i-\mu)\big)
+  \end{align*}
+  
+\end{enumerate}
+
+\subsection{Bayes}
+\begin{enumerate}[label=(\alph*)]
+\item
+  Pour un classifieur de Bayes il faut d'abords calculer la
+  probabilité de chaque classe dans notre ensemble d'entraînements ce
+  qui nous donne la probabilité à priori de chaque classe.\\
+  Pour le faire, on divise les données d'entraînements selon leurs
+  cible/classe et on crée un sous-ensemble pour chaque classe.\\
+  Ensuite, utilisant un noyau (e.g. Gaussien, Parzen, ...), on
+  obtient la probabilité conditionnelle de chaque sous-ensemble.\\
+  Ayant dans la main ces deux valeurs (la probabilité à priori et la
+  probabilité conditionnelle), on applique l'équation de
+  Bayes pour obtenir la probabilité vraisemblance et finalement
+  classifier les données d'entraînements.
+\item
+  \begin{align*}
+    P(c|x)=\frac{\hat{p}_c(x)\hat{P}_c}{\sum_{c'=1}^m \hat{p_{c'}}(x)\hat{P_{c'}}}
+  \end{align*}
+
+\end{enumerate}
+
+\section{Partie pratique : estimation de densité}
+Pour exécuter le code vous pourriez taper, s'il vous plaît, sur un terminal:\\
+\verb+python3 main.py+
+
+\section{Partie pratique : classifieur de Bayes}
+Pour exécuter le code vous pourriez taper, s'il vous plaît, sur un terminal:\\
+\verb+python3 main.py+
+
+\end{document}

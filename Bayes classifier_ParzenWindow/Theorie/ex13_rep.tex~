@@ -1,0 +1,177 @@
+\documentclass{article}
+
+\usepackage[utf8x]{inputenc}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{stackrel}
+\usepackage{amssymb}
+
+\usepackage{tikz} % draw
+
+\title{Série d'exercices \#13 \\ \normalsize IFT-2245}
+\author{Farzin Faridfar}
+
+% \newcommand\kw[1]{\textbf{#1}}
+% \newcommand \Base [2] {\texttt{#1}$_{#2}$}
+% \newcommand \Hex [1] {\Base{#1}{16}}
+
+\begin{document}
+
+\maketitle
+
+\setcounter{section}{13}
+
+\subsection{Vitesse d’horloge}
+\paragraph{}
+Dans l'algorithme de l'horloge (deuxième chance), le système change le pointeur
+sur un \emph{frame} en vérifiant le \emph{referenced} bit. Si c'est 0,
+il faut remplacer la page, si ce bit est 1, ça va être remis à 0, et
+le pointeur va passer à la \emph{frame} suivante. Ainsi:
+\begin{enumerate}
+\item Si le pointeur bouge rapidement, cela veut dire que on a plein
+  de page référencé et que le \emph{referenced} bit 1 et donc on a pas
+  besoin de remplacement de page.
+\item Dans ce cas, c'est l'inverse du 1er cas, le \emph{referenced}
+  bit est 0 et on a beaucoup de \emph{page fault} il faut toujours un remplacement de page et ensuite
+  passer à la \emph{frame} suivante. Par conséquente, le pointeur
+  bouge très lentement.
+\end{enumerate}
+
+\subsection{Mieux qu’Optimal}
+\paragraph{}
+L'OPT fonctionne en essayant de prévoir le future. Alors, s'ils
+existent beaucoup de \emph{page faults}, l'OPT continue à
+faire le remplacement de page, car il n'a aucune idée de nombres de
+pages actives qui peut être plus que la taille de mémoire.\par
+Au contraire, un algorithme comme \emph{working-set}
+sait qu'à chaque période de temps quelles pages sont plus
+utilisées. Donc, il peut vérifier si la taille des processus actives
+sont inférieur que celle de mémoire et alors empêcher le
+\emph{thrashing}.Il peut continuer à travailler seulement sur certains
+processus (le \emph{working-set}) et suspendre les autres.
+
+\pagebreak
+\subsection{Buddy-allocation}
+Allocation:\par
+1. Requête de 240B\\
+Supposons que le segment est déjà divisé successivement par 2
+jusqu'aux \emph{chunks} de 1KB (à cause de limite d'espace je ne
+l'illustre pas cet étape). Alors, on aura les \emph{chunks} de 512KB,
+256KB, 128KB, 64KB, 32KB, 16KB, 8KB, 4KB, 2KB et ce qui continue comme
+dessiné au-dessous:
+\bigbreak
+\begin{tikzpicture}
+  \draw (0,0) rectangle (12,1) node[pos=.5] {1024B};
+  \draw (0,-1) rectangle (6,0) node[pos=.5] {512B};
+  \draw (6,-1) rectangle (12,0) node[pos=.5] {512B};
+  \draw[fill=black!25, draw=black] (0,-2) rectangle (3,-1) node[pos=.5] {256B};
+  \draw (3,-2) rectangle (6,-1) node[pos=.5] {256B};
+  
+\end{tikzpicture}
+Ainsi, un bloc de 256B sera utilisé pour cette requête.\\
+
+2. Requête de 120B
+\bigbreak
+\begin{tikzpicture}
+  \draw (0,0) rectangle (12,1) node[pos=.5] {1024B};
+  \draw (0,-1) rectangle (6,0) node[pos=.5] {512B};
+  \draw (6,-1) rectangle (12,0) node[pos=.5] {512B};
+  \draw[fill=black!25, draw=black] (0,-2) rectangle (3,-1) node[pos=.5] {256B};
+  \draw (3,-2) rectangle (6,-1) node[pos=.5] {256B};
+  \draw[fill=black!25, draw=black] (3,-3) rectangle (4.5,-2) node[pos=.5] {128B};
+  \draw (4.5,-3) rectangle (6,-2) node[pos=.5] {128B};
+\end{tikzpicture}\\
+Un bloc de 128B pour la requête de 120B.\\
+
+3. Requête de 60B
+\bigbreak
+\begin{tikzpicture}
+  \draw (0,0) rectangle (12,1) node[pos=.5] {1024B};
+  \draw (0,-1) rectangle (6,0) node[pos=.5] {512B};
+  \draw (6,-1) rectangle (12,0) node[pos=.5] {512B};
+  \draw (0,-2) rectangle (3,-1) node[pos=.5] {256B};
+  \draw (3,-2) rectangle (6,-1) node[pos=.5] {256KB};
+  \draw[fill=black!25, draw=black] (3,-3) rectangle (4.5,-2) node[pos=.5] {128B};
+  \draw (4.5,-3) rectangle (6,-2) node[pos=.5] {128B};
+  \draw[fill=black!25, draw=black] (4.5,-4) rectangle (5.25,-3) node[pos=.5] {64B};
+  \draw (5.25,-4) rectangle (6,-3) node[pos=.5] {64B};
+\end{tikzpicture}\\
+Un bloc de 64B pour cette requête.\\
+
+4. Requête de 130B
+\bigbreak
+\begin{tikzpicture}
+  \draw (0,0) rectangle (12,1) node[pos=.5] {1024B};
+  \draw (0,-1) rectangle (6,0) node[pos=.5] {512B};
+  \draw (6,-1) rectangle (12,0) node[pos=.5] {512B};
+  \draw[fill=black!25, draw=black] (0,-2) rectangle (3,-1) node[pos=.5] {256B};
+  \draw (3,-2) rectangle (6,-1) node[pos=.5] {256B};
+  \draw[fill=black!25, draw=black] (6,-2) rectangle (9,-1)
+  node[pos=.5] {256B};
+  \draw (9,-2) rectangle (12,-1) node[pos=.5] {256B};
+  \draw[fill=black!25, draw=black] (3,-3) rectangle (4.5,-2) node[pos=.5] {128B};
+  \draw (4.5,-3) rectangle (6,-2) node[pos=.5] {128B};
+  \draw[fill=black!25, draw=black] (4.5,-4) rectangle (5.25,-3) node[pos=.5] {64B};
+  \draw (5.25,-4) rectangle (6,-3) node[pos=.5] {64B};
+\end{tikzpicture}\\
+Et finalement un bloc de 256B pour la requête de 130B (126B de gaspillage).
+\bigbreak
+Désallocation:\par
+1. Relâche le bloc de 240B
+\bigbreak
+\begin{tikzpicture}
+  \draw (0,0) rectangle (12,1) node[pos=.5] {1024B};
+  \draw (0,-1) rectangle (6,0) node[pos=.5] {512B};
+  \draw (6,-1) rectangle (12,0) node[pos=.5] {512B};
+  \draw (0,-2) rectangle (3,-1) node[pos=.5] {256B};
+  \draw (3,-2) rectangle (6,-1) node[pos=.5] {256B};
+  \draw[fill=black!25, draw=black] (6,-2) rectangle (9,-1)
+  node[pos=.5] {256B};
+  \draw (9,-2) rectangle (12,-1) node[pos=.5] {256B};
+  \draw[fill=black!25, draw=black] (3,-3) rectangle (4.5,-2) node[pos=.5] {128B};
+  \draw (4.5,-3) rectangle (6,-2) node[pos=.5] {128B};
+  \draw[fill=black!25, draw=black] (4.5,-4) rectangle (5.25,-3) node[pos=.5] {64B};
+  \draw (5.25,-4) rectangle (6,-3) node[pos=.5] {64B};
+\end{tikzpicture}\\
+Le bloc de 256B est récupéré.\\
+
+
+2. Relâche le bloc de 60B
+\bigbreak
+\begin{tikzpicture}
+  \draw (0,0) rectangle (12,1) node[pos=.5] {1024B};
+  \draw (0,-1) rectangle (6,0) node[pos=.5] {512B};
+  \draw (6,-1) rectangle (12,0) node[pos=.5] {512B};
+  \draw (0,-2) rectangle (3,-1) node[pos=.5] {256B};
+  \draw (3,-2) rectangle (6,-1) node[pos=.5] {256B};
+  \draw[fill=black!25, draw=black] (6,-2) rectangle (9,-1)
+  node[pos=.5] {256B};
+  \draw (9,-2) rectangle (12,-1) node[pos=.5] {256B};
+  \draw[fill=black!25, draw=black] (3,-3) rectangle (4.5,-2) node[pos=.5] {128B};
+  \draw (4.5,-3) rectangle (6,-2) node[pos=.5] {128B};
+  \draw (4.5,-4) rectangle (5.25,-3) node[pos=.5] {64B};
+  \draw (5.25,-4) rectangle (6,-3) node[pos=.5] {64B};
+\end{tikzpicture}\\
+Le bloc de 64B est désalloué.\\
+
+3. Relâche le bloc de 120B
+\bigbreak
+\begin{tikzpicture}
+  \draw (0,0) rectangle (12,1) node[pos=.5] {1024B};
+  \draw (0,-1) rectangle (6,0) node[pos=.5] {512B};
+  \draw (6,-1) rectangle (12,0) node[pos=.5] {512B};
+  \draw (0,-2) rectangle (3,-1) node[pos=.5] {256B};
+  \draw (3,-2) rectangle (6,-1) node[pos=.5] {256B};
+  \draw[fill=black!25, draw=black] (6,-2) rectangle (9,-1)
+  node[pos=.5] {256B};
+  \draw (9,-2) rectangle (12,-1) node[pos=.5] {256B};
+  \draw (3,-3) rectangle (4.5,-2) node[pos=.5] {128B};
+  \draw (4.5,-3) rectangle (6,-2) node[pos=.5] {128B};
+  \draw (4.5,-4) rectangle (5.25,-3) node[pos=.5] {64B};
+  \draw (5.25,-4) rectangle (6,-3) node[pos=.5] {64B};
+\end{tikzpicture}\\
+Le bloc de 128B est relâché. Le seul bloc occupé est un bloc de 256B
+de la dernière requête de 130.
+
+\end{document}
